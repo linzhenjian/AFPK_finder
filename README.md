@@ -17,11 +17,12 @@ AFLP_finder was tested on MacOs 11, Ubuntu 16.04 and Ubuntu 18.04.
 ## How to use
 At first, add the folder with executables to your PATH variable.
 then run "run_identifier.sh <KS-protein.fa> <output_path>"
-results:
+
+## results:
 this plot shows the INPUT_KSs (purple) are adjacent to AFLPs (light blue),  so the INPUT_KSs are identified as AFLPs.
 ![tsne54](https://user-images.githubusercontent.com/52417798/231541965-086593ed-edc0-4f04-be00-dcdba9387a55.png)
+
+
 output table example: it tells that INPUT_KS1 is clustered in cluster 4, cluster 4 contains 100% of the training AFLPs
-ID      cluster clade   percentage
-INPUT_KS1      4       AFLP    100%
-INPUT_KS2  4       AFLP    100%
-INPUT_KS3  3       FAS    80%
+
+[output.xlsx](https://github.com/linzhenjian/AFLP_finder/files/11214469/output.xlsx)
