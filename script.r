@@ -3,7 +3,7 @@ library(Rtsne)
 library(dbscan)
 library(ggplot2)
 library(getopt)
-library(RColorBrewer)
+#library(RColorBrewer)
 spec <- matrix(c(
   'help', 'h', 0, "logical", "Print help message",
   'inputfile', 'i', 1, "character", "pleae provide a table file with hmm alignment core ",

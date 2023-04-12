@@ -1,5 +1,5 @@
 #!/bin/bash
-ml R
+
 if [ $# -ne 2 ]; then
     echo "Usage: $0 <fasta_file> <output directry>"
     usage
@@ -28,6 +28,8 @@ fi
 
 BIN_PATH="`dirname \"$0\"`"
 #export PATH=$BIN_PATH
+
+if ! ( which R > /dev/null ); then echo "You should install R.";exit 1; fi
 
 if ! ( which hmmsearch > /dev/null ); then echo "You should install hmmer3.";exit 1; fi
 
