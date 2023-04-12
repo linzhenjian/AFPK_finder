@@ -7,8 +7,12 @@ if [ $# -ne 2 ]; then
 fi
 file="$1"
 output="$2"
+if [ -d "$output" ]; then
+    rm -rf "$output"  # delete existing folder
+fi
 
-mkdir -p $output
+mkdir "$output"  # create new folder
+
 if [[ ! -f $file ]]; then
   echo "Error: $file does not exist or is not a regular file."
   exit 1
@@ -36,7 +40,7 @@ if ! ( which hmmsearch > /dev/null ); then echo "You should install hmmer3.";exi
 fasta_head=($(grep ^\> $file | awk '{print $1}' | sed 's/>//g' | awk '!seen[$1]++'))
 
 for i in {1..31}; do
-        $BIN_PATH/hmmsearch --noali --cpu 4 --tblout $output/$i.hmm_output $BIN_PATH/hmm/$i.hmm $file
+        hmmsearch --noali --cpu 4 --tblout $output/$i.hmm_output $BIN_PATH/hmm/$i.hmm $file
 done
 echo -n "" > $output/hmm_matrix
 
@@ -59,15 +63,13 @@ cat    $BIN_PATH/training_data.txt $output/hmm_tab.txt > $output/data.txt
 $BIN_PATH/script.r -i $output/data.txt -o $output
 
 for csv in $(ls $output/tsne-db*.csv); do
-	
-	name=$(echo $csv | awk -F '[/.]' {print $(NF-1))}')
-	echo "ID cluster clade percentage" > $name.id 
-	awk '$5=="INPUT_KS" {print $1,$4}' $csv > $output/temp_a
-	awk '$5!="INPUT_KS" && $5!="clade" {print $4,$5}' $csv | awk '{a[$0]++} END{for(i in a){print i,a[i]}}' > $output/temp_b
-	awk '$5!="INPUT_KS" && $5!="clade" {print $5}' $csv |  awk '{a[$0]++} END{for(i in a){print i,a[i] | "sort -n -r -k 2"}}' > $output/temp_c
-	awk  'NR==FNR{a[$1]=$2;next} NR>FNR{print $0,a[$2]}'  $output/temp_c $output/temp_b | awk '{print $1,$2,$3/$4}'  | awk '{a[$1]=a[$1]" "$2" "$3} END {for (i in a) print i a[i]}'  > $output/temp_f
-	awk  'NR==FNR{a[$1]=$0;next} NR>FNR{print $0,a[$2]}' $output/temp_f $output/temp_a | cut -d' ' -f1,3- >> $name.id 
+        name=$(echo $csv | awk -F '[/.]' '{print $(NF-1)}')
+        echo "ID cluster clade percentage" | sed 's/ /\t/g' > $output/$name.id
+        awk '$5=="INPUT_KS" {print $1,$4}' $csv > $output/temp_a
+        awk '$5!="INPUT_KS" && $5!="clade" {print $4,$5}'  $csv | awk '{a[$0]++} END{for(i in a){print i,a[i] | "sort -n -r -k 2"}}' > $output/temp_b
+        awk '$5!="INPUT_KS" && $5!="clade" {print $5}'  $csv | awk '{a[$0]++} END{for(i in a){print i,a[i] | "sort -n -r -k 2"}}' > $output/temp_c
+        awk  'NR==FNR{a[$1]=$2;next} NR>FNR{print $0,a[$2]}'  $output/temp_c $output/temp_b | awk '{print $1,$2,($3/$4)*100"%"}'  | awk '{a[$1]=a[$1]" "$2" "$3} END {for (i in a) print i a[i]}'  > $output/temp_f
+        awk  'NR==FNR{a[$1]=$0;next} NR>FNR{print $0,a[$2]}' $output/temp_f $output/temp_a | cut -d' ' -f1,3- | sed 's/ /\t/g' >> $output/$name.id
 done
 rm $output/temp_*
-
 
