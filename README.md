@@ -1,10 +1,9 @@
 # AFLP_finder
-fast identify AFLPs
-It's based on t-Distributed Stochastic Neighbor Embedding (t-SNE) (van der Maaten, 2014) technique for dimensionality reduction, that uses hmm align scores. HDBSCAN clustering method (Campello et.al., 2013) is used to identify the posible clade (AFLP) for each preotein sequence input.
+fast identify Animal FAS Like PKS (AFLP)s
+It utilizes the t-Distributed Stochastic Neighbor Embedding (t-SNE) technique for dimensionality reduction, which is based on the alignment scores to a series of ketosynthase related Hidden Markov Model (HMM). The HDBSCAN clustering method is then employed to identify the possible AFLP clusters for each protein sequence input.
 
 ## Requirements
 * Bash
-* Perl >= 5.10
 * R >= 3.2
 * R packages: ggplot2, Rtsne, getopt, dbscan
 
