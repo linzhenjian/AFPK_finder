@@ -7,8 +7,8 @@ if [ $# -ne 2 ]; then
 fi
 file="$1"
 output="$2"
-rm -r $output
-mkdir $output
+
+mkdir -p $output
 if [[ ! -f $file ]]; then
   echo "Error: $file does not exist or is not a regular file."
   exit 1
@@ -55,3 +55,17 @@ awk '{print $1}' $file | awk '$0 ~ ">" {if (NR > 1) {print c;} c=0;printf substr
 awk  'NR==FNR{a[$1]=$0;next} NR>FNR{print a[$1],$2}' $output/hmm_matrix $output/length | sed 's/ /\t/g' |  awk '{for(i=1;i<=NF;i++)if($i>300){print $0;next}}'>  $output/hmm_tab.txt
 cat    $BIN_PATH/training_data.txt $output/hmm_tab.txt > $output/data.txt
 $BIN_PATH/script.r -i $output/data.txt -o $output
+
+for csv in $(ls $output/tsne-db*.csv); do
+	
+	name=$(echo $csv | awk -F '[/.]' {print $(NF-1))}')
+	echo "ID cluster clade percentage" > $name.id 
+	awk '$5=="INPUT_KS" {print $1,$4}' $csv > $output/temp_a
+	awk '$5!="INPUT_KS" && $5!="clade" {print $4,$5}' $csv | awk '{a[$0]++} END{for(i in a){print i,a[i]}}' > $output/temp_b
+	awk '$5!="INPUT_KS" && $5!="clade" {print $5}' $csv |  awk '{a[$0]++} END{for(i in a){print i,a[i] | "sort -n -r -k 2"}}' > $output/temp_c
+	awk  'NR==FNR{a[$1]=$2;next} NR>FNR{print $0,a[$2]}'  $output/temp_c $output/temp_b | awk '{print $1,$2,$3/$4}'  | awk '{a[$1]=a[$1]" "$2" "$3} END {for (i in a) print i a[i]}'  > $output/temp_f
+	awk  'NR==FNR{a[$1]=$0;next} NR>FNR{print $0,a[$2]}' $output/temp_f $output/temp_a | cut -d' ' -f1,3- >> $name.id 
+done
+rm $output/temp_*
+
+
