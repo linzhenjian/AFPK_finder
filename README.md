@@ -12,7 +12,7 @@ It utilizes the t-Distributed Stochastic Neighbor Embedding (t-SNE) technique fo
 * HMMER 3.3.2
 
 
-AFLP_finder was tested on Ubuntu 16.04 and Ubuntu 18.04.
+AFLP_finder was tested on Mac, Ubuntu 16.04 and Ubuntu 18.04.
 
 ## How to use
 At first, add the folder with executables to your PATH variable.
