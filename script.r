@@ -63,7 +63,7 @@ for(i in perplexities){
 	pngfile <- paste0(opt$output_folder,"/tsne",i,".png")
 	ggsave(file=pngfile)
 }
-cat("binnibng analysis completed!!\n")
+cat("AFLP analysis completed!!\n")
 q()
 
 
