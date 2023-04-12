@@ -25,4 +25,4 @@ this plot shows the INPUT_KSs (purple) are adjacent to AFLPs (light blue),  so t
 
 output table example: it tells that INPUT_KS1 is clustered in cluster 4, cluster 4 contains 100% of the training AFLPs
 
-[output.xlsx](https://github.com/linzhenjian/AFLP_finder/files/11214469/output.xlsx)
+![Capture](https://user-images.githubusercontent.com/52417798/231544396-0c8b1ea5-bd71-4c32-b5bc-76c3eb98ef97.PNG)
