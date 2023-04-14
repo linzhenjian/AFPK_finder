@@ -37,7 +37,7 @@ in_data <- as.matrix(data[1:row_count,2:(col_count-2)])
 col_mean <- apply(in_data,2,mean)  
 norm_data <- sweep(in_data,2,col_mean,"/")
 number <- round(row_count / 100)/10
-perplexities = ceiling(c(20,40,60) * number**0.3)
+perplexities = ceiling(c(40,60) * number**0.3)
 
 mytsne <- function(i, norm_data) {
   require(Rtsne)
@@ -52,7 +52,7 @@ myhdbscan <- function(tsne){
 	datafile <- paste0(opt$output_folder,"/","tsne-db",i,".csv")
 	write.table(tsne_data,file=datafile,sep="\t",row.names = FALSE, quote=FALSE)
 	p <- ggplot(tsne_data) + 
-	geom_point(aes(x=X,y=Y,colour=as.factor(clade),alpha=0.7))+
+	geom_point(aes(x=X,y=Y,colour=as.factor(clade),alpha=0.7))+ theme_bw() + theme(panel.grid=element_blank()) +
 	scale_color_manual(values=c("#87CEFA","#7B68EE","#808080", "#9ACD32","#99FF33","#FFC0CB","#EE6A50","#800080","#8DEEEE", "#006400","#FFFF00","#191970"))
 	return(p)
 }
