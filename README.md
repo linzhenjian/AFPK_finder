@@ -1,5 +1,5 @@
 # AFLP_finder
-fast identify Animal FAS Like PKS (AFLP)s
+fast identify Animal FAS Like PKS (AFLP)s. 
 It utilizes the t-Distributed Stochastic Neighbor Embedding (t-SNE) technique for dimensionality reduction, which is based on the alignment scores to a series of ketosynthase related Hidden Markov Model (HMM). The HDBSCAN clustering method is then employed to identify the possible AFLP clusters for each protein sequence input.
 
 ## Requirements
