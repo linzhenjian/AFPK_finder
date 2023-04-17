@@ -4,7 +4,7 @@ if [[ -z "$1" || $1 == -h* ]]; then
     cat <<EOF
 AFLP-finder Schmidt Lab, University of Utah
 requirments: hmmer3 prodigal
-Usage: $0 -p <protein fasta file>/-d <dna fasta file> [ -o <output folder> ] [ -t <CPU threads> ]
+Usage: $0  -p <protein fasta file>/-d <dna fasta file> [ -o <output folder> ] [ -t <CPU threads> ]
 EOF
     exit
 fi
@@ -46,7 +46,7 @@ fi
 
 
 if [ -z $THREADS ]; then THREADS=4; fi
-if [ -z $MINLENGTH ]; then MINLENGTH=200; fi
+
 
 mkdir $output
 
@@ -68,7 +68,7 @@ if (($result <= 0)); then
 fi
 
 if ( [[ -z $prot ]] && [[ -f $nucl ]] ); then
-	prodigal -i $nucl  -a $nucl.prot  -p meta 	
+	prodigal -q -i $nucl  -a $nucl.prot  -p meta 	
 	file=$nucl.prot
 fi
 
@@ -83,7 +83,7 @@ if ! ( which hmmsearch > /dev/null ); then echo "You should install hmmer3.";exi
 for i in {1..31}; do
         hmmsearch --noali --cpu $THREADS --tblout $output/$i.hmm_output $BIN_PATH/hmm/$i.hmm $file
 done
-fasta_head=($(cat $output/*.hmm_output | awk '{print $1}' | sed '/#/d' | awk '!seen[$1]++'))
+fasta_head=($(cat $output/*.hmm_output | awk '$6>300 {print $1}' | sed '/#/d' | awk '!seen[$1]++'))
 echo -n "" > $output/hmm_matrix
 
 for seq_name in ${fasta_head[*]}; do
@@ -100,7 +100,7 @@ for seq_name in ${fasta_head[*]}; do
 done
 rm $output/*.hmm_output
 awk '{print $1}' $file | awk '$0 ~ ">" {if (NR > 1) {print c;} c=0;printf substr($0,2,100) " "; } $0 !~ ">" {c+=length($0);} END { print c; }' > $output/length
-awk  'NR==FNR{a[$1]=$0;next} NR>FNR{print a[$1],$2}' $output/hmm_matrix $output/length | sed 's/ /\t/g' | awk '{ for (i=2; i<NF-1; i++) if ($i > 300) { print; next } }' >  $output/hmm_tab.txt
+awk  'NR==FNR{a[$1]=$0;next} NR>FNR{print a[$1],$2}' $output/hmm_matrix $output/length | sed 's/ /\t/g'  | awk '{ for (i=2; i<NF-1; i++) if ($i > 300) { print; next } }' >  $output/hmm_tab.txt
 cat    $BIN_PATH/training_data.txt $output/hmm_tab.txt > $output/data.txt
 $BIN_PATH/script.r -i $output/data.txt -o $output
 
