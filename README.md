@@ -10,7 +10,7 @@ It utilizes the t-Distributed Stochastic Neighbor Embedding (t-SNE) technique fo
 *install.packages(c("ggplot2","Rtsne","getopt","dbscan"))*
 
 * HMMER 3.3.2
-
+*prodigal   (in input is DNA file)
 
 AFLP_finder was tested on MacOs 11, Ubuntu 16.04 and Ubuntu 18.04.
 
