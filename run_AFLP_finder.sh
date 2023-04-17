@@ -4,7 +4,7 @@ if [[ -z "$1" || $1 == -h* ]]; then
     cat <<EOF
 AFLP-finder Schmidt Lab, University of Utah
 requirments: hmmer3 prodigal
-Usage: $0 -c <contigs> -p <protein fasta file>/-d <dna fasta file> [ -o <output folder> ] [ -t <CPU threads> ]
+Usage: $0 -p <protein fasta file>/-d <dna fasta file> [ -o <output folder> ] [ -t <CPU threads> ]
 EOF
     exit
 fi
