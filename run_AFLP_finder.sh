@@ -68,7 +68,6 @@ if (($result <= 0)); then
 fi
 
 if ( [[ -z $prot ]] && [[ -f $nucl ]] ); then
-	echo "yes"
 	prodigal -i $nucl  -a $nucl.prot  -p meta 	
 	file=$nucl.prot
 fi
