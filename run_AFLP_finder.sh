@@ -1,47 +1,90 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-if [ $# -ne 2 ]; then
-    echo "Usage: $0 <fasta_file> <output directry>"
-    usage
-    exit 1
+if [[ -z "$1" || $1 == -h* ]]; then
+    cat <<EOF
+AFLP-finder Schmidt Lab, University of Utah
+requirments: hmmer3 prodigal
+Usage: $0 -c <contigs> -p <protein fasta file>/-d <dna fasta file> [ -o <output folder> ] [ -t <CPU threads> ]
+EOF
+    exit
 fi
-file="$1"
-output="$2"
+
+# Parse command line options
+while getopts "p:d:o:t:m:" opt; do
+  case $opt in
+    p)
+      prot="$OPTARG"
+      ;;
+    d)
+      nucl="$OPTARG"
+      ;;
+    o)
+      output="$OPTARG"
+      ;;
+    t)
+      THREADS="$OPTARG"
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
+
+if [ -z $output ]; then
+	mkdir ./AFLP_output
+	output="./AFLP_output"
+fi
+
 if [ -d "$output" ]; then
     rm -rf "$output"  # delete existing folder
 fi
 
-mkdir "$output"  # create new folder
 
-if [[ ! -f $file ]]; then
-  echo "Error: $file does not exist or is not a regular file."
-  exit 1
+if [ -z $THREADS ]; then THREADS=4; fi
+if [ -z $MINLENGTH ]; then MINLENGTH=200; fi
+
+mkdir $output
+
+if ! ( [[ -f $prot ]]  || [[ -f $nucl ]] );then
+        echo "Input files not found!"
+        exit 1
 fi
 
-if [[ ! $(file -b --mime-type "$file") == "text/plain" ]]; then
-  echo "Error: $file is not a text file."
-  exit 1
+if ( [[ -f $prot ]] && [[ -z $nucl ]] ); then
+	file=$prot
+	result=`cat $prot | grep -v '^>' | grep -i -e [FPEJLZOIQ*X] |wc -l`
 fi
 
-result=`cat $file | grep -v '^>' | grep -i -e [FPEJLZOIQ*X] |wc -l`
+
 
 if (($result <= 0)); then
   echo "Error: $file is not a protein fasta file."
   exit 1	
 fi
 
+if ( [[ -z $prot ]] && [[ -f $nucl ]] ); then
+	echo "yes"
+	prodigal -i $nucl  -a $nucl.prot  -p meta 	
+	file=$nucl.prot
+fi
+
 BIN_PATH="`dirname \"$0\"`"
-#export PATH=$BIN_PATH
+
 
 if ! ( which R > /dev/null ); then echo "You should install R.";exit 1; fi
-
+if ! ( which prodigal > /dev/null ); then echo "You should install prodigal.";exit 1; fi
 if ! ( which hmmsearch > /dev/null ); then echo "You should install hmmer3.";exit 1; fi
 
-fasta_head=($(grep ^\> $file | awk '{print $1}' | sed 's/>//g' | awk '!seen[$1]++'))
 
 for i in {1..31}; do
-        hmmsearch --noali --cpu 4 --tblout $output/$i.hmm_output $BIN_PATH/hmm/$i.hmm $file
+        hmmsearch --noali --cpu $THREADS --tblout $output/$i.hmm_output $BIN_PATH/hmm/$i.hmm $file
 done
+fasta_head=($(cat $output/*.hmm_output | awk '{print $1}' | sed '/#/d' | awk '!seen[$1]++'))
 echo -n "" > $output/hmm_matrix
 
 for seq_name in ${fasta_head[*]}; do
@@ -58,7 +101,7 @@ for seq_name in ${fasta_head[*]}; do
 done
 rm $output/*.hmm_output
 awk '{print $1}' $file | awk '$0 ~ ">" {if (NR > 1) {print c;} c=0;printf substr($0,2,100) " "; } $0 !~ ">" {c+=length($0);} END { print c; }' > $output/length
-awk  'NR==FNR{a[$1]=$0;next} NR>FNR{print a[$1],$2}' $output/hmm_matrix $output/length | sed 's/ /\t/g' |  awk '{for(i=1;i<=NF;i++)if($i>300){print $0;next}}'>  $output/hmm_tab.txt
+awk  'NR==FNR{a[$1]=$0;next} NR>FNR{print a[$1],$2}' $output/hmm_matrix $output/length | sed 's/ /\t/g' | awk '{ for (i=2; i<NF-1; i++) if ($i > 300) { print; next } }' >  $output/hmm_tab.txt
 cat    $BIN_PATH/training_data.txt $output/hmm_tab.txt > $output/data.txt
 $BIN_PATH/script.r -i $output/data.txt -o $output
 
