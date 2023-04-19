@@ -80,7 +80,7 @@ if ! ( which prodigal > /dev/null ); then echo "You should install prodigal.";ex
 if ! ( which hmmsearch > /dev/null ); then echo "You should install hmmer3.";exit 1; fi
 
 
-for i in {1..31}; do
+for i in {1..30}; do
         hmmsearch --noali --cpu $THREADS --tblout $output/$i.hmm_output $BIN_PATH/hmm/$i.hmm $file
 done
 fasta_head=($(cat $output/*.hmm_output | awk '$6>300 {print $1}' | sed '/#/d' | awk '!seen[$1]++'))
@@ -88,7 +88,7 @@ echo -n "" > $output/hmm_matrix
 
 for seq_name in ${fasta_head[*]}; do
 	echo -n $seq_name" " >> $output/hmm_matrix
-	for i in {1..31}; do
+	for i in {1..30}; do
 		score=$(awk '$1=="'"${seq_name}"'" {print $6}' $output/$i.hmm_output | sed -n 1p)
 	if [ "$score" == "" ]; then 
 		score=5
