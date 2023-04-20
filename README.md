@@ -18,8 +18,11 @@ AFLP_finder was tested on MacOs 11, Ubuntu 16.04 and Ubuntu 18.04.
 
 ## How to use
 At first, add the folder with executables to your PATH variable.
+
 export PATH="/path_to_AFLP_FInder/":$PATH
+
 cd /path_to_AFLP_FInder/
+
 chmod 771 *
 
 then run "run_AFLP_finder.sh -p protein_KS.fa -o output -t 16 "  or "run_AFLP_finder.sh -d DNA_KS.fa -o output -t 16 "
