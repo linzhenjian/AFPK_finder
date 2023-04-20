@@ -6,13 +6,11 @@ It utilizes the t-Distributed Stochastic Neighbor Embedding (t-SNE) technique fo
 * Bash
 * R >= 3.2
 * R packages: ggplot2, Rtsne, getopt, dbscan
-* 
+* HMMER 3.3.2
+* prodigal   (if input is DNA file)
 *To install R packages just run R environment and execute command:
 install.packages(c("ggplot2","Rtsne","getopt","dbscan"))
 
-*HMMER 3.3.2
-
-*prodigal   (if input is DNA file)
 
 
 AFLP_finder was tested on MacOs 11, Ubuntu 16.04 and Ubuntu 18.04.
