@@ -32,6 +32,7 @@ ideal inputs will be intact protein sequences of KS domain of iterative PKSs, th
 ## results:
 this plot shows the INPUT_KSs (purple) are adjacent to AFPKs (light blue),  so the INPUT_KSs are identified as AFPKs.
 
+![tsne54](https://user-images.githubusercontent.com/52417798/235504837-baaf58e0-657c-4cd1-8c38-ecf569f510a2.png)
 
 
 
