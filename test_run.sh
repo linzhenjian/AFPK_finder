@@ -3,5 +3,5 @@
 #load HMMER3
 #load prodigal
 
- export PATH="/path_to_/AFLP_finder/":$PATH
-run_AFLP_finder.sh -p testing_data/ar-clade1.fa -o test_output 
+# export PATH="/path_to_/AFPK_finder/":$PATH
+run_AFPK_finder.sh -p testing_data/ar-clade1.fa -o test_output 
