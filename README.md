@@ -21,11 +21,11 @@ At first, add the folder with executables to your PATH variable.
 
 git clone https://github.com/linzhenjian/AFPK_finder.git
 
-export PATH="/path_to_AFPK_FInder/":$PATH
-
-cd /path_to_AFPK_FInder/
+cd AFPK_finder
 
 chmod 771 *
+
+export PATH="/path_to_AFPK_FInder/":$PATH
 
 then run "run_AFPK_finder.sh -p protein_KS.fa -o output -t 16 "  or "run_AFPK_finder.sh -d DNA_KS.fa -o output -t 16 "
 
