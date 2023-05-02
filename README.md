@@ -19,6 +19,8 @@ AFPK_finder was tested on MacOs 11, Ubuntu 16.04 and Ubuntu 18.04.
 ## How to use
 At first, add the folder with executables to your PATH variable.
 
+git clone https://github.com/linzhenjian/AFPK_finder.git
+
 export PATH="/path_to_AFPK_FInder/":$PATH
 
 cd /path_to_AFPK_FInder/
