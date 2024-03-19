@@ -4,13 +4,16 @@ if [[ -z "$1" || $1 == -h* ]]; then
     cat <<EOF
 AFLP-finder Schmidt Lab, University of Utah
 requirments: hmmer3 prodigal
-Usage: $0  -p <protein fasta file>/-d <dna fasta file> [ -o <output folder> ] [ -t <CPU threads> ]
+Usage: $0  -p <protein fasta file>/-d <dna fasta file> -h <HMM models in a folder> [ -o <output folder> ] [ -t <CPU threads> ] [ -m <training data> ] [ -l <training prot annotation table> ] [ -x <model> ]
+example:  run_AFLP_finder.sh -p protein.fa -o ./output -m ./FAD_halogenase_finder_2-24-2024/traindata.fa   -l ./FAD_halogenase_finder_2-24-2024/train_anno.txt  -h ./FAD_halogenase_finder_2-24-2024/hmm
 EOF
     exit
 fi
 
+BIN_PATH="`dirname \"$0\"`"
+
 # Parse command line options
-while getopts "p:d:o:t:m:" opt; do
+while getopts "p:d:o:t:m:l:h:x:" opt; do
   case $opt in
     p)
       prot="$OPTARG"
@@ -24,6 +27,19 @@ while getopts "p:d:o:t:m:" opt; do
     t)
       THREADS="$OPTARG"
       ;;
+    m)
+      train_data="$OPTARG"
+      ;;
+    l)
+      train_anno="$OPTARG"
+      ;;
+    h)
+      hmms="$OPTARG"
+      ;;
+    x)
+      model="$OPTARG"
+      ;;
+
     \?)
       echo "Invalid option: -$OPTARG" >&2
       exit 1
@@ -47,13 +63,17 @@ fi
 
 if [ -z $THREADS ]; then THREADS=4; fi
 
-
+# Create the output folder
 mkdir $output
+
+# Check if either a protein or DNA FASTA file exists
 
 if ! ( [[ -f $prot ]]  || [[ -f $nucl ]] );then
         echo "Input files not found!"
         exit 1
 fi
+
+# Process protein FASTA file
 
 if ( [[ -f $prot ]] && [[ -z $nucl ]] ); then
 	file=$prot
@@ -61,6 +81,7 @@ if ( [[ -f $prot ]] && [[ -z $nucl ]] ); then
 fi
 
 
+# Check if the file is a protein FASTA file
 
 if (($result <= 0)); then
   echo "Error: $file is not a protein fasta file."
@@ -72,46 +93,80 @@ if ( [[ -z $prot ]] && [[ -f $nucl ]] ); then
 	file=$nucl.prot
 fi
 
-BIN_PATH="`dirname \"$0\"`"
 
+if ( [[ -z $hmms ]] ); then
+        hmms="$BIN_PATH"/hmm
+fi
+
+if ( [[ -z $model ]] ); then
+	model="$BIN_PATH"/training_data.txt
+fi
 
 if ! ( which R > /dev/null ); then echo "You should install R.";exit 1; fi
 if ! ( which prodigal > /dev/null ); then echo "You should install prodigal.";exit 1; fi
 if ! ( which hmmsearch > /dev/null ); then echo "You should install hmmer3.";exit 1; fi
 
+# making the training data matraxi, if the training data provided, the model will be re-calculated
 
-for i in {1..30}; do
-        hmmsearch --noali --cpu $THREADS --tblout $output/$i.hmm_output $BIN_PATH/hmm/$i.hmm $file
-done
-fasta_head=($(cat $output/*.hmm_output | awk '$9>300 {print $1}' | sed '/#/d' | awk '!seen[$1]++'))
-echo -n "" > $output/hmm_matrix
-
-for seq_name in ${fasta_head[*]}; do
-	echo -n $seq_name" " >> $output/hmm_matrix
-	for i in {1..30}; do
-		score=$(awk '$1=="'"${seq_name}"'" {print $9}' $output/$i.hmm_output | sed -n 1p)
-	if [ "$score" == "" ]; then 
-		score=5
-	fi
-	echo -n $score" " >> $output/hmm_matrix
-	done 
-	echo  "INPUT_KS" >> $output/hmm_matrix
+if ( [[ -f $train_data ]] && [[ -f $train_anno ]] ); then
+	# Check if the training file is a protein FASTA file
+	if ( [[ -f $train_data ]] ); then
 	
+		result=`cat $train_data | grep -v '^>' | grep -i -e [FPEJLZOIQ*X] |wc -l`
+	fi
+
+	if (($result <= 0)); then
+  	echo "Error: $train_data is not a protein fasta file."
+  	exit 1	
+	fi
+	# creat training matrix
+
+	for hmm in "$hmms"/*.hmm; do
+	 	file_name=$(basename "$hmm" | sed 's/[.]hmm//')	
+       		hmmsearch --noali --cpu $THREADS --tblout $output/$file_name.hmm_output $hmm $train_data
+	done
+	echo "" > $output/train_temp
+	for i in $output/*.hmm_output; do   awk  ' {print $1,"hmm_"$3,$9}' $i | sed '/#/d' | awk '!seen[$1]++' >> $output/train_temp; done
+	#for i in $output/*.hmm_output; do name=$(basename $i | sed 's/[.]hmm_output//');  awk -v var="$name" ' {print $1,var,$9}' $i | sed '/#/d' | awk '!seen[$1]++' >> $output/train_temp; done
+	
+	cat $output/*.hmm_output | awk '{print $1}' | sed '/#/d' | awk '!seen[$1]++' > $output/list
+	awk  'NR==FNR{a[$0]}NR>FNR{if ($1 in a) print $0}'  $output/list  $output/train_temp > $output/signifit_hit
+	awk '{print $1,"type",$2}' $train_anno >> $output/signifit_hit
+	
+	$BIN_PATH/make_train.r -i $output/signifit_hit -o $output
+	rm $output/*.hmm_output
+	model=$output/training_data.txt
+fi
+
+#get the hmm scores for input KSs
+for hmm in "$hmms"/*.hmm; do
+	 file_name=$(basename "$hmm" | sed 's/[.]hmm//')	
+        hmmsearch --noali --cpu $THREADS --tblout $output/$file_name.hmm_output $hmm $file
 done
+
+echo "" > $output/outputqq
+for i in $output/*.hmm_output; do awk ' {print $1,"hmm_"$3,$9}' $i | sed '/#/d' | awk '!seen[$1]++' >> $output/outputqq; done
+cat $output/*.hmm_output | awk '$9>100 {print $1}' | sed '/#/d' | awk '!seen[$1]++' > $output/list
+awk  'NR==FNR{a[$0]}NR>FNR{if ($1 in a) print $0}'  $output/list  $output/outputqq > $output/signifit_hit
+awk '{print $1,"type","INPUTseq"}' $output/list >> $output/signifit_hit
+$BIN_PATH/combine_table.r -i $output/signifit_hit -t $model -o $output
 rm $output/*.hmm_output
-awk '{print $1}' $file | awk '$0 ~ ">" {if (NR > 1) {print c;} c=0;printf substr($0,2,100) " "; } $0 !~ ">" {c+=length($0);} END { print c; }' > $output/length
-awk  'NR==FNR{a[$1]=$0;next} NR>FNR{print a[$1],$2}' $output/hmm_matrix $output/length | sed 's/ /\t/g'  | awk '{ for (i=2; i<NF-1; i++) if ($i > 300) { print; next } }' >  $output/hmm_tab.txt
-cat    $BIN_PATH/training_data.txt $output/hmm_tab.txt > $output/data.txt
-awk 'BEGIN { FS="\t"; OFS="\t" } NR>0 { max=0; for (i=2; i<(NF-1); i++) { if ($i>max) max=$i } for (i=2; i<(NF-1); i++) $i=$i/max;   print}' $output/data.txt > $output/normal_data.txt
+
+#normalize the hmm scores by row
+
+awk 'BEGIN { FS="\t"; OFS="\t" } NR>1 { max=0; for (i=2; i<NF; i++) { if ($i>max) max=$i } for (i=2; i<NF; i++) $i=$i/max;   print}' $output/data.txt > $output/normal_data.txt  # normalized the data by the max in each row
+
+
 $BIN_PATH/script.r -i $output/normal_data.txt -o $output
 $BIN_PATH/script.r -i $output/data.txt -o $output
-
+ 
+#summarize the clustering
 for csv in $(ls $output/*tsne-db*.csv); do
         name=$(echo $csv | awk -F '/' '{print $NF}' | sed 's/[.]csv//')
         echo "ID cluster clade percentage" | sed 's/ /\t/g' > $output/$name.id
-        awk '$5=="INPUT_KS" {print $1,$4}' $csv > $output/temp_a
-        awk '$5!="INPUT_KS" && $5!="clade" {print $4,$5}'  $csv | awk '{a[$0]++} END{for(i in a){print i,a[i] | "sort -n -r -k 2"}}' > $output/temp_b
-        awk '$5!="INPUT_KS" && $5!="clade" {print $5}'  $csv | awk '{a[$0]++} END{for(i in a){print i,a[i] | "sort -n -r -k 2"}}' > $output/temp_c
+        awk '$5=="INPUT_seq" {print $1,$4}' $csv > $output/temp_a
+        awk '$5!="INPUT_seq" && $5!="clade" {print $4,$5}'  $csv | awk '{a[$0]++} END{for(i in a){print i,a[i] | "sort -n -r -k 2"}}' > $output/temp_b
+        awk '$5!="INPUT_seq" && $5!="clade" {print $5}'  $csv | awk '{a[$0]++} END{for(i in a){print i,a[i] | "sort -n -r -k 2"}}' > $output/temp_c
         awk  'NR==FNR{a[$1]=$2;next} NR>FNR{print $0,a[$2]}'  $output/temp_c $output/temp_b | awk '{print $1,$2,($3/$4)*100"%"}'  | awk '{a[$1]=a[$1]" "$2" "$3} END {for (i in a) print i a[i]}'  > $output/temp_f
         awk  'NR==FNR{a[$1]=$0;next} NR>FNR{print $0,a[$2]}' $output/temp_f $output/temp_a | cut -d' ' -f1,3- | sed 's/ /\t/g' >> $output/$name.id
 done

@@ -29,15 +29,15 @@ if ( is.null(opt$output_folder) ) {
         q(status=1)
 }
 
-data <- read.delim(opt$inputfile,header=F)
+data <- read.delim(opt$inputfile,header=T)
 
 col_count = ncol(data)
 row_count <- nrow(data)
-in_data <- as.matrix(data[1:row_count,2:(col_count-2)])
+in_data <- as.matrix(data[1:row_count,2:(col_count-1)])
 col_mean <- apply(in_data,2,mean)  
 norm_data <- sweep(in_data,2,col_mean,"/")
 number <- round(row_count / 100)/10
-perplexities = ceiling(c(40,60) * number**0.3)
+perplexities = ceiling(c(10,20,30,40,50,60,70,80,90,100,110,120,130) * number**0.3)
 
 mytsne <- function(i, norm_data) {
   require(Rtsne)
@@ -47,13 +47,13 @@ mytsne <- function(i, norm_data) {
 file_name <- basename(opt$inputfile)
 myhdbscan <- function(tsne){
 	ds <- hdbscan(tsne,minPts=20)
-	tsne_data <- data.frame(data[1:row_count,1],tsne,ds$cluster,data[1:row_count,(col_count-1):col_count])
-	colnames(tsne_data)=c("ID","X","Y","cluster","clade","length")
+	tsne_data <- data.frame(data[1:row_count,1],tsne,ds$cluster,data[1:row_count,col_count])
+	colnames(tsne_data)=c("ID","X","Y","cluster","clade")
 	datafile <- paste0(opt$output_folder,"/",file_name,"_tsne-db",i,".csv")
 	write.table(tsne_data,file=datafile,sep="\t",row.names = FALSE, quote=FALSE)
 	p <- ggplot(tsne_data) + 
 	geom_point(aes(x=X,y=Y,colour=as.factor(clade),alpha=0.7))+ theme_bw() + theme(panel.grid=element_blank()) +
-	scale_color_manual(values=c("#87CEFA","#7B68EE","#808080", "#9ACD32","#99FF33","#FFC0CB","#EE6A50","#800080","#8DEEEE", "#006400","#FFFF00","#191970"))
+	scale_color_manual(values=c("red","blue","green", "purple","black","gray","pink","yellow","#8DEEEE", "#006400","#FFFF00","#191970"))
 	return(p)
 }
 
