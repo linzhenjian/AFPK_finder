@@ -5,7 +5,7 @@ if [[ -z "$1" || $1 == -h* ]]; then
 AFLP-finder Schmidt Lab, University of Utah
 requirments: hmmer3 prodigal
 Usage: $0  -p <protein fasta file>/-d <dna fasta file> -h <HMM models in a folder> [ -o <output folder> ] [ -t <CPU threads> ] [ -m <training data> ] [ -l <training prot annotation table> ] [ -x <model> ]
-example:  run_AFLP_finder.sh -p protein.fa -o ./output -m ./FAD_halogenase_finder_2-24-2024/traindata.fa   -l ./FAD_halogenase_finder_2-24-2024/train_anno.txt  -h ./FAD_halogenase_finder_2-24-2024/hmm
+example:  run_AFLP_finder.sh -p protein.fa -o ./output 
 EOF
     exit
 fi
