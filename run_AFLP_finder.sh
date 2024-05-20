@@ -152,12 +152,7 @@ awk '{print $1,"type","INPUTseq"}' $output/list >> $output/signifit_hit
 $BIN_PATH/combine_table.r -i $output/signifit_hit -t $model -o $output
 rm $output/*.hmm_output
 
-#normalize the hmm scores by row
-
-awk 'BEGIN { FS="\t"; OFS="\t" } NR>1 { max=0; for (i=2; i<NF; i++) { if ($i>max) max=$i } for (i=2; i<NF; i++) $i=$i/max;   print}' $output/data.txt > $output/normal_data.txt  # normalized the data by the max in each row
-
-
-$BIN_PATH/script.r -i $output/normal_data.txt -o $output
+#run Rt-SNE and clustering
 $BIN_PATH/script.r -i $output/data.txt -o $output
  
 #summarize the clustering
