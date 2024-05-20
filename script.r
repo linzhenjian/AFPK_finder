@@ -37,7 +37,7 @@ in_data <- as.matrix(data[1:row_count,2:(col_count-1)])
 col_mean <- apply(in_data,2,mean)  
 norm_data <- sweep(in_data,2,col_mean,"/")
 number <- round(row_count / 100)/10
-perplexities = ceiling(c(10,20,30,40,50,60,70,80,90,100,110,120,130) * number**0.3)
+perplexities = ceiling(c(30,40,50,60,70,80,90,100) * number**0.3)
 
 mytsne <- function(i, norm_data) {
   require(Rtsne)
