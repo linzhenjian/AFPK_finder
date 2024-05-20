@@ -164,9 +164,9 @@ $BIN_PATH/script.r -i $output/data.txt -o $output
 for csv in $(ls $output/*tsne-db*.csv); do
         name=$(echo $csv | awk -F '/' '{print $NF}' | sed 's/[.]csv//')
         echo "ID cluster clade percentage" | sed 's/ /\t/g' > $output/$name.id
-        awk '$5=="INPUT_seq" {print $1,$4}' $csv > $output/temp_a
-        awk '$5!="INPUT_seq" && $5!="clade" {print $4,$5}'  $csv | awk '{a[$0]++} END{for(i in a){print i,a[i] | "sort -n -r -k 2"}}' > $output/temp_b
-        awk '$5!="INPUT_seq" && $5!="clade" {print $5}'  $csv | awk '{a[$0]++} END{for(i in a){print i,a[i] | "sort -n -r -k 2"}}' > $output/temp_c
+        awk '$5=="INPUTseq" {print $1,$4}' $csv > $output/temp_a
+        awk '$5!="INPUTseq" && $5!="clade" {print $4,$5}'  $csv | awk '{a[$0]++} END{for(i in a){print i,a[i] | "sort -n -r -k 2"}}' > $output/temp_b
+        awk '$5!="INPUTseq" && $5!="clade" {print $5}'  $csv | awk '{a[$0]++} END{for(i in a){print i,a[i] | "sort -n -r -k 2"}}' > $output/temp_c
         awk  'NR==FNR{a[$1]=$2;next} NR>FNR{print $0,a[$2]}'  $output/temp_c $output/temp_b | awk '{print $1,$2,($3/$4)*100"%"}'  | awk '{a[$1]=a[$1]" "$2" "$3} END {for (i in a) print i a[i]}'  > $output/temp_f
         awk  'NR==FNR{a[$1]=$0;next} NR>FNR{print $0,a[$2]}' $output/temp_f $output/temp_a | cut -d' ' -f1,3- | sed 's/ /\t/g' >> $output/$name.id
 done
